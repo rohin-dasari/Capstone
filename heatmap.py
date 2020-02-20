@@ -14,6 +14,16 @@ ser=serial.Serial('COM3', BAUD_RATE)
 # make new figure
 fig, ax = plt.subplots()
 
+
+
+# The string that is read from the serial port
+# must be validated and santized before it can
+# be passed to the heatmap.
+# The expected output from the serial monitor can be
+# found in the .ino file in this directory.
+# The output should look like this:
+# r1c1 r2c1 r3c1 r4c1|r1c2 r2c3...
+# Where r1c1 corresponds to row1 col1 on the grid
 while 1:
     
     # read, validate, and sanitize input
