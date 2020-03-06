@@ -7,14 +7,23 @@ import matplotlib.pyplot as plt
 # --> this ensures synchronization
 BAUD_RATE = 9600
 NCOLS = 4
-NROWS = 4
+NROWS = 10
 
-ser=serial.Serial('COM3', BAUD_RATE)
+
+def parseData(data):
+    res = [] # store resulting data array
+    for chunk in data:
+        for num in chunk:
+            if num != ' ':
+                res.append(int(num))
+    return res
+
+
+ser=serial.Serial('COM6', BAUD_RATE)
 
 # make new figure
 fig, ax = plt.subplots()
-
-
+viz = plt.imshow(np.zeros((NROWS, NCOLS)))
 
 # The string that is read from the serial port
 # must be validated and santized before it can
@@ -24,29 +33,26 @@ fig, ax = plt.subplots()
 # The output should look like this:
 # r1c1 r2c1 r3c1 r4c1|r1c2 r2c3...
 # Where r1c1 corresponds to row1 col1 on the grid
-while 1:
-    
+disp = 1
+while disp:
+
+    if plt.get_fignums() == []:
+        disp = 0
+
     # read, validate, and sanitize input
-    raw = str(ser.readline())
-    data = []
+    raw = ser.readline().decode("utf-8")
     processed = raw.split("|")
     processed = processed[0:-1]
-
-    if len(processed) == NCOLS:
-        processed[0] = processed[0][2:-1]
-        for row in processed:
-            temp = row.split(" ")
-            if len(temp) > NROWS:
-                temp = temp[0:-1]
-            temp = [int(num) for num in temp]
-            data.extend(temp)
-
-        # store data as 4x4 numpy array, then render heatmap
-        if len(data) == NCOLS*NROWS:
-            data = np.array(data).reshape((4, 4)).transpose()
-            fig.imshow(data, vmin=0, vmax=np.amax(data))
+    if len(processed) == NROWS:
+        arr = parseData(processed)
+        print(len(arr)==NROWS*NCOLS)
+        
+        if len(arr) == NROWS*NCOLS:
+            print("hi")
+            data = np.array(arr).reshape((NCOLS, NROWS)).transpose()
+            viz.set_data(data)
+            viz.set_clim(0, np.amax(data))
             plt.pause(0.0005)
-
             
 
-plt.show() 
+plt.draw() 
